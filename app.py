@@ -17,6 +17,7 @@ import collections
 import collections.abc
 collections.Callable = collections.abc.Callable
 import sys
+from operator import itemgetter # for sorting lists of tuples
 
 #----------------------------------------------------------------------------#
 # App Config.
@@ -111,30 +112,39 @@ def index():
 
 @app.route('/venues')
 def venues():
-  # TODO: replace with real venues data.
-  #       num_upcoming_shows should be aggregated based on number of upcoming shows per venue.
-  data=[{
-    "city": "San Francisco",
-    "state": "CA",
-    "venues": [{
-      "id": 1,
-      "name": "The Musical Hop",
-      "num_upcoming_shows": 0,
-    }, {
-      "id": 3,
-      "name": "Park Square Live Music & Coffee",
-      "num_upcoming_shows": 1,
-    }]
-  }, {
-    "city": "New York",
-    "state": "NY",
-    "venues": [{
-      "id": 2,
-      "name": "The Dueling Pianos Bar",
-      "num_upcoming_shows": 0,
-    }]
-  }]
-  return render_template('pages/venues.html', areas=data);
+  # Data to save all venues
+  data = []
+  # Set of all the {cities, states) combinations uniquely
+  location_list = set()
+
+  venues = Venue.query.all()
+  for venue in venues:
+    # Add turple of (city, state) to the set
+    location_list.add((venue.city, venue.state))
+  
+  # Turn the set into an ordered list
+  location_list = list(location_list)
+  # Sorts on second column first (state), then by city.
+  location_list.sort(key=itemgetter(1,0))
+
+  for location in location_list:
+    venue_list = []
+    for venue in venues:
+        if (venue.city == location[0]) and (venue.state == location[1]):
+            venue_list.append({
+                "id": venue.id,
+                "name": venue.name
+            })
+
+    # Append the data dictionary
+    data.append({
+        "city": location[0],
+        "state": location[1],
+        "venues": venue_list
+    })
+
+  print(data)
+  return render_template('pages/venues.html', areas=data)
 
 @app.route('/venues/search', methods=['POST'])
 def search_venues():

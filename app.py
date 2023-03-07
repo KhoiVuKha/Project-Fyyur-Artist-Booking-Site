@@ -16,6 +16,7 @@ from forms import *
 import collections
 import collections.abc
 collections.Callable = collections.abc.Callable
+import sys
 
 #----------------------------------------------------------------------------#
 # App Config.
@@ -46,6 +47,25 @@ class Venue(db.Model):
     facebook_link = db.Column(db.String(120))
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
+
+    def to_dict(self):
+      return {
+          'id': self.id,
+          'name': self.name,
+          'city': self.city,
+          'state': self.state,
+          'address': self.address,
+          'phone': self.phone,
+          'genres': self.genres.split(','),  # convert string to list
+          'image_link': self.image_link,
+          'facebook_link': self.facebook_link,
+          'website': self.website,
+          'seeking_talent': self.seeking_talent,
+          'seeking_description': self.seeking_description,
+      }
+
+    def __repr__(self):
+       return f'<<Venue {self.id} {self.name}>'
 
 class Artist(db.Model):
     __tablename__ = 'Artist'
@@ -225,14 +245,31 @@ def create_venue_form():
 
 @app.route('/venues/create', methods=['POST'])
 def create_venue_submission():
-  # TODO: insert form data as a new Venue record in the db, instead
-  # TODO: modify data to be the data object returned from db insertion
-
-  # on successful db insert, flash success
-  flash('Venue ' + request.form['name'] + ' was successfully listed!')
-  # TODO: on unsuccessful db insert, flash an error instead.
-  # e.g., flash('An error occurred. Venue ' + data.name + ' could not be listed.')
-  # see: http://flask.pocoo.org/docs/1.0/patterns/flashing/
+  error = False
+  try:
+      venue = Venue()
+      venue.name = request.form['name']
+      venue.city = request.form['city']
+      venue.state = request.form['state']
+      venue.address = request.form['address']
+      venue.phone = request.form['phone']
+      tmp_genres = request.form.getlist('genres')
+      venue.genres = ','.join(tmp_genres)
+      venue.facebook_link = request.form['facebook_link']
+      db.session.add(venue)
+      db.session.commit()
+  except:
+      error = True
+      db.session.rollback()
+      print(sys.exc_info())
+  finally:
+      db.session.close()
+  if error:
+    # on unsuccessful db insert, flash an error.
+    flash('An error occurred. Venue ' + request.form['name'] + ' could not be listed.')
+  else:
+    # on successful db insert, flash success
+    flash('Venue ' + request.form['name'] + ' was successfully listed!')
   return render_template('pages/home.html')
 
 @app.route('/venues/<venue_id>', methods=['DELETE'])

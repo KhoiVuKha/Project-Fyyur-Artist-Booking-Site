@@ -63,7 +63,7 @@ class Venue(db.Model):
         'phone': self.phone,
         'website': self.website,
         'facebook_link': self.facebook_link,
-        #'seeking_talent': self.seeking_talent,
+        'seeking_talent': self.seeking_talent,
         'seeking_description': self.seeking_description,
         'image_link': self.image_link
       }
@@ -374,6 +374,7 @@ def edit_venue(venue_id):
   form = VenueForm()
   venue = Venue.query.get(venue_id).to_dict()
   #TODO: get genres list and push to venue
+  form = VenueForm(formdata=None, data=venue)
   return render_template('forms/edit_venue.html', form=form, venue=venue)
 
 @app.route('/venues/<int:venue_id>/edit', methods=['POST'])
@@ -381,6 +382,7 @@ def edit_venue_submission(venue_id):
   venue = Venue.query.get(venue_id)
   form = VenueForm()
   error = False
+  is_seeking_talent = False
 
   try:
     venue.name = request.form['name'].strip()
@@ -389,14 +391,14 @@ def edit_venue_submission(venue_id):
     venue.city = request.form['city']
     venue.state = request.form['state']
     venue.phone = request.form['phone']
-    #venue.website = request.form['website'].strip()
+    venue.website = request.form['website_link']
     venue.facebook_link = request.form['facebook_link']
-    #TODO: Check why can't update value for seeking_talent
-    venue.seeking_talent = True if form.seeking_talent.data == 'True' else False
+    if (form.seeking_talent.data):
+      is_seeking_talent = True
+    else:
+       is_seeking_talent = False
+    venue.seeking_talent = is_seeking_talent
     venue.seeking_description = request.form['seeking_description']
-    print(form.seeking_talent.data)
-
-    db.session.add(venue)
     db.session.commit()
   except:
     db.session.rollback()

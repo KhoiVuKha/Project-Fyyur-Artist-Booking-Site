@@ -313,26 +313,46 @@ def show_artist(artist_id):
 @app.route('/artists/<int:artist_id>/edit', methods=['GET'])
 def edit_artist(artist_id):
   form = ArtistForm()
-  artist={
-    "id": 4,
-    "name": "Guns N Petals",
-    "genres": ["Rock n Roll"],
-    "city": "San Francisco",
-    "state": "CA",
-    "phone": "326-123-5000",
-    "website": "https://www.gunsnpetalsband.com",
-    "facebook_link": "https://www.facebook.com/GunsNPetals",
-    "seeking_venue": True,
-    "seeking_description": "Looking for shows to perform at in the San Francisco Bay Area!",
-    "image_link": "https://images.unsplash.com/photo-1549213783-8284d0336c4f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=300&q=80"
-  }
-  # TODO: populate form with fields from artist with ID <artist_id>
+  artist = Artist.query.get(artist_id).to_dict()
+  artist['website_link'] = artist['website']
+  form = ArtistForm(formdata=None, data=artist)
   return render_template('forms/edit_artist.html', form=form, artist=artist)
 
 @app.route('/artists/<int:artist_id>/edit', methods=['POST'])
 def edit_artist_submission(artist_id):
-  # TODO: take values from the form submitted, and update existing
-  # artist record with ID <artist_id> using the new attributes
+  artist = Artist.query.get(artist_id)
+  form = ArtistForm()
+  error = False
+  is_seeking_venue = False
+
+  try:
+    artist.name = request.form['name'].strip()
+    artist.city = request.form['city']
+    artist.state = request.form['state']
+    artist.phone = request.form['phone']
+    #TODO: process genres combobox
+    artist.facebook_link = request.form['facebook_link']
+    artist.image_link = request.form['image_link']
+    artist.website = request.form['website_link']
+    if (request.form['seeking_venue'] == 'y'):
+      is_seeking_venue = True
+    else:
+       is_seeking_venue = False
+    artist.seeking_venue = is_seeking_venue
+    artist.seeking_description = request.form['seeking_description']
+    db.session.commit()
+  except:
+    db.session.rollback()
+    error = True
+    print(sys.exc_info())
+  finally:
+    db.session.close()
+  if error:
+    # on unsuccessful db update, flash an error.
+    flash('An error occurred. Artist ' + request.form['name'] + ' could not be edited.')
+  else:
+    # on successful db update, flash success
+    flash('Artist ' + request.form['name'] + ' was successfully edited!')
 
   return redirect(url_for('show_artist', artist_id=artist_id))
 

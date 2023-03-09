@@ -27,8 +27,6 @@ app = Flask(__name__)
 moment = Moment(app)
 app.config.from_object('config')
 db = SQLAlchemy(app)
-
-# TODO: connect to a local postgresql database
 migrate = Migrate(app, db)
 
 #----------------------------------------------------------------------------#
@@ -50,8 +48,7 @@ class Venue(db.Model):
     seeking_talent = db.Column(db.Boolean, default=False)
     seeking_description = db.Column(db.String(120))
     image_link = db.Column(db.String(500))
-
-    # TODO: implement any missing fields, as a database migration using Flask-Migrate
+    shows = db.relationship('Show', backref='venue', lazy=True)
 
     def to_dict(self):
       return {
@@ -85,8 +82,7 @@ class Artist(db.Model):
     seeking_venue = db.Column(db.Boolean, nullable=False, default=False)
     seeking_description = db.Column(db.String(120))
     image_link = db.Column(db.String(500))
-
-    # TODO: implement any missing fields, as a database migration using Flask-Migrate
+    shows = db.relationship('Show', backref='artist', lazy=True)
 
     def to_dict(self):
       return {
@@ -105,7 +101,6 @@ class Artist(db.Model):
     def __repr__(self):
       return f'<Artist {self.id} {self.name}>'
 
-# TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
 class Show(db.Model):
   __tablename__ = 'Show'
 
@@ -139,7 +134,6 @@ app.jinja_env.filters['datetime'] = format_datetime
 def index():
   return render_template('pages/home.html')
 
-
 #  Venues
 #  ----------------------------------------------------------------
 
@@ -166,7 +160,8 @@ def venues():
         if (venue.city == location[0]) and (venue.state == location[1]):
             venue_list.append({
                 "id": venue.id,
-                "name": venue.name
+                "name": venue.name,
+                "num_upcoming_shows": len(list(filter(lambda x: x.start_time > datetime.today(), venue.shows)))
             })
 
     # Append the data dictionary
@@ -188,7 +183,8 @@ def search_venues():
   for venue in results:
      venue_list.append({
         "id": venue.id,
-        "name": venue.name
+        "name": venue.name,
+        "num_upcoming_shows": len(list(filter(lambda x: x.start_time > datetime.today(), venue.shows)))
         })
      
   response={
@@ -202,17 +198,47 @@ def search_venues():
 @app.route('/venues/<int:venue_id>')
 def show_venue(venue_id):
   venue = Venue.query.get(venue_id)
-
   data = venue.to_dict()
+
+  past_shows = []
+  upcoming_shows = []
+
+  past_shows = list(filter(lambda x: x.start_time < datetime.today(), venue.shows))
+  upcoming_shows = list(filter(lambda x: x.start_time >= datetime.today(), venue.shows))
+
+  tmp = []
+  for show in past_shows:
+    tmp.append({
+      'artist_id': show.artist.id,
+      'artist_name': show.artist.name,
+      'artist_image_link': show.artist.image_link,
+      'start_time': show.start_time.isoformat()
+    })
+  past_shows = tmp
+
+  tmp = []
+  for show in upcoming_shows:
+    tmp.append({
+      'artist_id': show.artist.id,
+      'artist_name': show.artist.name,
+      'artist_image_link': show.artist.image_link,
+      'start_time': show.start_time.isoformat()
+    })
+  upcoming_shows = tmp
+
+  past_shows_count = len(past_shows)
+  upcoming_shows_count = len(upcoming_shows)
+  data["past_shows"] = past_shows
+  data["upcoming_shows"] = upcoming_shows
+  data["past_shows_count"] = past_shows_count
+  data["upcoming_shows_count"] = upcoming_shows_count
 
   #TODO: get genres
 #  if (venue['genres'] is not None):
 #     data['genres'] = venue['genres'].split(',')
 #  else:
 #     data['genres'] = ""
-  #TODO: get past_shows_count, upcoming_shows_count then append to the data
-  #TODO: get lists: past_shows[],  upcoming_shows[] then append to the data
-  
+  print(data)
   return render_template('pages/show_venue.html', venue=data)
 
 #  Create Venue
@@ -293,7 +319,7 @@ def search_artists():
     artist_list.append({
       "id": artist.id,
       "name": artist.name,
-      #TODO: "num_upcoming_shows": 
+      "num_upcoming_shows": len(list(filter(lambda x: x.start_time > datetime.today(), artist.shows)))
     })
 
   response = {
@@ -305,16 +331,46 @@ def search_artists():
 @app.route('/artists/<int:artist_id>')
 def show_artist(artist_id):
   artist = Artist.query.get(artist_id)
-
   data = artist.to_dict()
+
+  past_shows = []
+  upcoming_shows = []
+
+  past_shows = list(filter(lambda x: x.start_time < datetime.today(), artist.shows))
+  upcoming_shows = list(filter(lambda x: x.start_time >= datetime.today(), artist.shows))
+
+  tmp = []
+  for show in past_shows:
+    tmp.append({
+      'venue_id': show.venue.id,
+      'venue_name': show.venue.name,
+      'venue_image_link': show.venue.image_link,
+      'start_time': show.start_time.isoformat()
+    })
+  past_shows = tmp
+
+  tmp = []
+  for show in upcoming_shows:
+    tmp.append({
+      'venue_id': show.venue.id,
+      'venue_name': show.venue.name,
+      'venue_image_link': show.venue.image_link,
+      'start_time': show.start_time.isoformat()
+    })
+  upcoming_shows = tmp
+
+  past_shows_count = len(past_shows)
+  upcoming_shows_count = len(upcoming_shows)
+  data["past_shows"] = past_shows
+  data["upcoming_shows"] = upcoming_shows
+  data["past_shows_count"] = past_shows_count
+  data["upcoming_shows_count"] = upcoming_shows_count
 
   #TODO: get genres
 #  if (venue['genres'] is not None):
 #     data['genres'] = venue['genres'].split(',')
 #  else:
 #     data['genres'] = ""
-  #TODO: get past_shows_count, upcoming_shows_count then append to the data
-  #TODO: get lists: past_shows[],  upcoming_shows[] then append to the data
 
   return render_template('pages/show_artist.html', artist=data)
 

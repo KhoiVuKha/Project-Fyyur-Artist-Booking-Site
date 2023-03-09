@@ -187,7 +187,7 @@ def search_venues():
         "num_upcoming_shows": len(list(filter(lambda x: x.start_time > datetime.today(), venue.shows)))
         })
      
-  response={
+  response = {
     "count": len(results),
     "data": venue_list
   }
@@ -233,11 +233,11 @@ def show_venue(venue_id):
   data["past_shows_count"] = past_shows_count
   data["upcoming_shows_count"] = upcoming_shows_count
 
-  #TODO: get genres
-#  if (venue['genres'] is not None):
-#     data['genres'] = venue['genres'].split(',')
-#  else:
-#     data['genres'] = ""
+  # Get genres
+  if (venue.genres is not None):
+     data['genres'] = venue.genres.split(',')
+  else:
+     data['genres'] = ""
   print(data)
   return render_template('pages/show_venue.html', venue=data)
 
@@ -366,11 +366,11 @@ def show_artist(artist_id):
   data["past_shows_count"] = past_shows_count
   data["upcoming_shows_count"] = upcoming_shows_count
 
-  #TODO: get genres
-#  if (venue['genres'] is not None):
-#     data['genres'] = venue['genres'].split(',')
-#  else:
-#     data['genres'] = ""
+  # Get genres
+  if (artist.genres is not None):
+     data['genres'] = artist.genres.split(',')
+  else:
+     data['genres'] = ""
 
   return render_template('pages/show_artist.html', artist=data)
 
@@ -379,8 +379,11 @@ def show_artist(artist_id):
 @app.route('/artists/<int:artist_id>/edit', methods=['GET'])
 def edit_artist(artist_id):
   form = ArtistForm()
-  artist = Artist.query.get(artist_id).to_dict()
+  artist = Artist.query.get(artist_id)
+  genres = artist.genres.split(',')
+  artist = artist.to_dict()
   artist['website_link'] = artist['website']
+  artist['genres'] = genres
   form = ArtistForm(formdata=None, data=artist)
   return render_template('forms/edit_artist.html', form=form, artist=artist)
 
@@ -396,7 +399,7 @@ def edit_artist_submission(artist_id):
     artist.city = request.form['city']
     artist.state = request.form['state']
     artist.phone = request.form['phone']
-    #TODO: process genres combobox
+    artist.genres = ','.join(form.genres.data)
     artist.facebook_link = request.form['facebook_link']
     artist.image_link = request.form['image_link']
     artist.website = request.form['website_link']
@@ -425,9 +428,11 @@ def edit_artist_submission(artist_id):
 @app.route('/venues/<int:venue_id>/edit', methods=['GET'])
 def edit_venue(venue_id):
   form = VenueForm()
-  venue = Venue.query.get(venue_id).to_dict()
+  venue = Venue.query.get(venue_id)
+  genres = venue.genres.split(',')
+  venue = venue.to_dict()
   venue['website_link'] = venue['website']
-  #TODO: get genres list and push to venue
+  venue['genres'] = genres
   form = VenueForm(formdata=None, data=venue)
   return render_template('forms/edit_venue.html', form=form, venue=venue)
 
@@ -440,7 +445,7 @@ def edit_venue_submission(venue_id):
 
   try:
     venue.name = request.form['name'].strip()
-    #TODO: process genres combobox
+    venue.genres = ','.join(form.genres.data)
     venue.address = request.form['address']
     venue.city = request.form['city']
     venue.state = request.form['state']
@@ -487,7 +492,7 @@ def create_artist_submission():
     artist.state = request.form['state']
     artist.phone = request.form['phone']
     tmp_genres = request.form.getlist('genres')
-    artist.genres = ', '.join(tmp_genres)
+    artist.genres = ','.join(tmp_genres)
     artist.facebook_link = request.form['facebook_link']
     artist.image_link = request.form['image_link']
     artist.website = request.form['website_link']
@@ -569,7 +574,6 @@ def not_found_error(error):
 @app.errorhandler(500)
 def server_error(error):
     return render_template('errors/500.html'), 500
-
 
 if not app.debug:
     file_handler = FileHandler('error.log')

@@ -19,7 +19,7 @@ collections.Callable = collections.abc.Callable
 import sys
 from operator import itemgetter # for sorting lists of tuples
 
-# import database's model
+# import database's models
 from models import db, Venue, Artist, Show
 
 #----------------------------------------------------------------------------#
@@ -200,24 +200,17 @@ def create_venue_submission():
 
 @app.route('/venues/<venue_id>/delete', methods=['DELETE'])
 def delete_venue(venue_id):
-  print('/venues/<venue_id>/delete')
-  error = False
   try:
     venue = Venue.query.get(venue_id)
     venue_name = venue.name
     db.session.delete(venue)
     db.session.commit()
-  except:
+    flash(f'Successfully removed venue {0}.'.format(venue_name))
+  except Exception as err:
     db.session.rollback()
-    error = True
+    flash('An error occurred removing the Venue: {0}. Error: {1}'.format(venue_name, err))
   finally:
     db.session.close()
-  if error:
-    flash(f'An error occurred deleting venue {venue_name}.')
-    abort(500)
-  else:
-    flash(f'Successfully removed venue {venue_name}.')
-    return jsonify({'success': True})
 
   # TODO: BONUS CHALLENGE: Implement a button to delete a Venue on a Venue Page, have it so that
   # clicking that button delete it from the db then redirect the user to the homepage
@@ -431,25 +424,21 @@ def create_shows():
 
 @app.route('/shows/create', methods=['POST'])
 def create_show_submission():
-  error = False
-
+  form = ShowForm(request.form)
   try:
     show = Show()
-    show.venue_id = request.form['venue_id']
-    show.artist_id = request.form['artist_id']
-    show.start_time = request.form['start_time']
+    show.venue_id = form.venue_id.data
+    show.artist_id = form.artist_id.data
+    show.start_time = form.start_time.data
     db.session.add(show)
     db.session.commit()
-  except:
+    flash('Show created successfully!')
+  except Exception as err:
     db.session.rollback()
-    error = True
     print(sys.exc_info())
+    flash('An error occurred creating the Show. Error: {0}'.format(err))
   finally:
     db.session.close()
-  if error:
-    flash('An error occurred. Show could not be listed.')
-  else:
-    flash('Show was successfully listed!')
   return render_template('pages/home.html')
 
 @app.errorhandler(404)

@@ -267,9 +267,8 @@ def show_artist(artist_id):
 
   past_shows = []
   upcoming_shows = []
-
-  past_shows = list(filter(lambda x: x.start_time < datetime.today(), artist.shows))
-  upcoming_shows = list(filter(lambda x: x.start_time >= datetime.today(), artist.shows))
+  past_shows = db.session.query(Show).join(Venue).filter(Show.artist_id==artist_id).filter(Show.start_time < datetime.now()).all()
+  upcoming_shows = db.session.query(Show).join(Venue).filter(Show.artist_id==artist_id).filter(Show.start_time >= datetime.now()).all()
 
   tmp = []
   for show in past_shows:

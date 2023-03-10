@@ -252,6 +252,9 @@ def create_venue_form():
 @app.route('/venues/create', methods=['POST'])
 def create_venue_submission():
   error = False
+  is_seeking_venue = False
+  form = VenueForm()
+
   try:
       venue = Venue()
       venue.name = request.form['name']
@@ -262,6 +265,15 @@ def create_venue_submission():
       tmp_genres = request.form.getlist('genres')
       venue.genres = ','.join(tmp_genres)
       venue.facebook_link = request.form['facebook_link']
+      venue.website = request.form['website_link']
+      venue.image_link = request.form['image_link']
+      if (form.seeking_talent.data):
+        is_seeking_talent = True
+      else:
+        is_seeking_talent = False
+      venue.seeking_talent = is_seeking_talent
+      venue.seeking_description = request.form['seeking_description']
+  
       db.session.add(venue)
       db.session.commit()
   except:
@@ -452,6 +464,7 @@ def edit_venue_submission(venue_id):
     venue.phone = request.form['phone']
     venue.website = request.form['website_link']
     venue.facebook_link = request.form['facebook_link']
+    venue.image_link = request.form['image_link']
     if (form.seeking_talent.data):
       is_seeking_talent = True
     else:

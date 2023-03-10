@@ -402,7 +402,7 @@ def create_artist_submission():
 
 @app.route('/shows')
 def shows():
-  list = db.session.query(Show, Venue, Artist).join(Venue).join(Artist).filter(Show.start_time > datetime.now()).order_by('start_time').all()
+  list = db.session.query(Show, Venue, Artist).join(Venue).join(Artist).order_by('start_time').all()
   data = []
 
   for item in list:

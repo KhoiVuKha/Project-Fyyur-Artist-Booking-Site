@@ -52,6 +52,10 @@ app.jinja_env.filters['datetime'] = format_datetime
 def validate_phone(form, field):
     if not re.search(r'^[0-9\-\+]+$', field.data):
         raise ValidationError("Invalid phone number.")
+ 
+def validate_url(form, field, field_name):
+    if not re.search(r'^(http(s):\/\/.)[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)$', field.data):
+        raise ValidationError("Invalid {0} URL.".format(field_name))
     
 #----------------------------------------------------------------------------#
 # Controllers.
@@ -192,6 +196,9 @@ def create_venue_submission():
     venue.facebook_link = form.facebook_link.data
     venue.website = form.website_link.data
     venue.image_link = form.image_link.data
+    validate_url(form, form.facebook_link, "facebook_link")
+    validate_url(form, form.image_link, "image_link")
+    validate_url(form, form.website_link, "website_link")
     venue.seeking_talent = form.seeking_talent.data
     venue.seeking_description = form.seeking_description.data
 
@@ -321,6 +328,9 @@ def edit_artist_submission(artist_id):
     artist.facebook_link = form.facebook_link.data
     artist.image_link = form.image_link.data
     artist.website = form.website_link.data
+    validate_url(form, form.facebook_link, "facebook_link")
+    validate_url(form, form.image_link, "image_link")
+    validate_url(form, form.website_link, "website_link")
     artist.seeking_venue = form.seeking_venue.data
     artist.seeking_description = form.seeking_description.data
     db.session.commit()
@@ -359,6 +369,9 @@ def edit_venue_submission(venue_id):
     venue.website = form.website_link.data
     venue.facebook_link = form.facebook_link.data
     venue.image_link = form.image_link.data
+    validate_url(form, form.facebook_link, "facebook_link")
+    validate_url(form, form.image_link, "image_link")
+    validate_url(form, form.website_link, "website_link")
     venue.seeking_talent = form.seeking_talent.data
     venue.seeking_description = form.seeking_description.data
     db.session.commit()
@@ -394,6 +407,9 @@ def create_artist_submission():
     artist.facebook_link = form.facebook_link.data
     artist.image_link = form.image_link.data
     artist.website = form.website_link.data
+    validate_url(form, form.facebook_link, "facebook_link")
+    validate_url(form, form.image_link, "image_link")
+    validate_url(form, form.website_link, "website_link")
     artist.seeking_venue = form.seeking_venue.data
     artist.seeking_description = form.seeking_description.data
 

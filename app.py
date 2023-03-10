@@ -171,43 +171,31 @@ def create_venue_form():
 
 @app.route('/venues/create', methods=['POST'])
 def create_venue_submission():
-  error = False
-  is_seeking_venue = False
-  form = VenueForm()
-
+  form = VenueForm(request.form)
   try:
     venue = Venue()
-    venue.name = request.form['name']
-    venue.city = request.form['city']
-    venue.state = request.form['state']
-    venue.address = request.form['address']
-    venue.phone = request.form['phone']
+    venue.name = form.name.data
+    venue.city = form.city.data
+    venue.state = form.state.data
+    venue.address = form.address.data
+    venue.phone = form.phone.data
     tmp_genres = request.form.getlist('genres')
     venue.genres = ','.join(tmp_genres)
-    venue.facebook_link = request.form['facebook_link']
-    venue.website = request.form['website_link']
-    venue.image_link = request.form['image_link']
-    if (form.seeking_talent.data):
-      is_seeking_talent = True
-    else:
-      is_seeking_talent = False
-    venue.seeking_talent = is_seeking_talent
-    venue.seeking_description = request.form['seeking_description']
+    venue.facebook_link = form.facebook_link.data
+    venue.website = form.website_link.data
+    venue.image_link = form.image_link.data
+    venue.seeking_talent = form.seeking_talent.data
+    venue.seeking_description = form.seeking_description.data
 
     db.session.add(venue)
     db.session.commit()
-  except:
-    error = True
+    flash('Venue: {0} created successfully!'.format(venue.name))
+  except Exception as err:
     db.session.rollback()
+    flash('An error occurred creating the Venue: {0}. Error: {1}'.format(venue.name, err))
     print(sys.exc_info())
   finally:
     db.session.close()
-  if error:
-    # on unsuccessful db insert, flash an error.
-    flash('An error occurred. Venue ' + request.form['name'] + ' could not be listed.')
-  else:
-    # on successful db insert, flash success
-    flash('Venue ' + request.form['name'] + ' was successfully listed!')
   return render_template('pages/home.html')
 
 @app.route('/venues/<venue_id>/delete', methods=['DELETE'])
@@ -358,7 +346,7 @@ def edit_artist_submission(artist_id):
 
 @app.route('/venues/<int:venue_id>/edit', methods=['GET'])
 def edit_venue(venue_id):
-  form = VenueForm()
+  form = VenueForm(request.form)
   venue = Venue.query.get(venue_id)
   genres = venue.genres.split(',')
   venue = venue.to_dict()
@@ -370,39 +358,27 @@ def edit_venue(venue_id):
 @app.route('/venues/<int:venue_id>/edit', methods=['POST'])
 def edit_venue_submission(venue_id):
   venue = Venue.query.get(venue_id)
-  form = VenueForm()
-  error = False
-  is_seeking_talent = False
-
+  form = VenueForm(request.form)
   try:
-    venue.name = request.form['name'].strip()
+    venue.name = form.name.data
     venue.genres = ','.join(form.genres.data)
-    venue.address = request.form['address']
-    venue.city = request.form['city']
-    venue.state = request.form['state']
-    venue.phone = request.form['phone']
-    venue.website = request.form['website_link']
-    venue.facebook_link = request.form['facebook_link']
-    venue.image_link = request.form['image_link']
-    if (form.seeking_talent.data):
-      is_seeking_talent = True
-    else:
-       is_seeking_talent = False
-    venue.seeking_talent = is_seeking_talent
-    venue.seeking_description = request.form['seeking_description']
+    venue.address = form.address.data
+    venue.city = form.city.data
+    venue.state = form.state.data
+    venue.phone = form.phone.data
+    venue.website = form.website_link.data
+    venue.facebook_link = form.facebook_link.data
+    venue.image_link = form.image_link.data
+    venue.seeking_talent = form.seeking_talent.data
+    venue.seeking_description = form.seeking_description.data
     db.session.commit()
-  except:
+    flash('Venue: {0} updated successfully'.format(venue.name))
+  except Exception as err:
     db.session.rollback()
-    error = True
     print(sys.exc_info())
+    flash('An error occurred updating the Venue: {0}. Error: {1}'.format(venue.name, err))
   finally:
     db.session.close()
-  if error:
-    # on unsuccessful db update, flash an error.
-    flash('An error occurred. Venue ' + request.form['name'] + ' could not be edited.')
-  else:
-    # on successful db update, flash success
-    flash('Venue ' + request.form['name'] + ' was successfully edited!')
   return redirect(url_for('show_venue', venue_id=venue_id))
 
 #  Create Artist

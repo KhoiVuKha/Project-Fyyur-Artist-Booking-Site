@@ -18,6 +18,8 @@ import collections.abc
 collections.Callable = collections.abc.Callable
 import sys
 from operator import itemgetter # for sorting lists of tuples
+from wtforms.validators import Regexp, re
+from wtforms import ValidationError
 
 # import database's models
 from models import db, Venue, Artist, Show
@@ -46,6 +48,11 @@ def format_datetime(value, format='medium'):
 
 app.jinja_env.filters['datetime'] = format_datetime
 
+# Validate for phone number
+def validate_phone(form, field):
+    if not re.search(r'^[0-9\-\+]+$', field.data):
+        raise ValidationError("Invalid phone number.")
+    
 #----------------------------------------------------------------------------#
 # Controllers.
 #----------------------------------------------------------------------------#
@@ -179,6 +186,7 @@ def create_venue_submission():
     venue.state = form.state.data
     venue.address = form.address.data
     venue.phone = form.phone.data
+    validate_phone(form, form.phone)
     tmp_genres = request.form.getlist('genres')
     venue.genres = ','.join(tmp_genres)
     venue.facebook_link = form.facebook_link.data
@@ -308,6 +316,7 @@ def edit_artist_submission(artist_id):
     artist.city = form.city.data
     artist.state = form.state.data
     artist.phone = form.phone.data
+    validate_phone(form, form.phone)
     artist.genres = ','.join(form.genres.data)
     artist.facebook_link = form.facebook_link.data
     artist.image_link = form.image_link.data
@@ -346,6 +355,7 @@ def edit_venue_submission(venue_id):
     venue.city = form.city.data
     venue.state = form.state.data
     venue.phone = form.phone.data
+    validate_phone(form, form.phone)
     venue.website = form.website_link.data
     venue.facebook_link = form.facebook_link.data
     venue.image_link = form.image_link.data
@@ -378,6 +388,7 @@ def create_artist_submission():
     artist.city = form.city.data
     artist.state = form.state.data
     artist.phone = form.phone.data
+    validate_phone(form, form.phone)
     tmp_genres = request.form.getlist('genres')
     artist.genres = ','.join(tmp_genres)
     artist.facebook_link = form.facebook_link.data

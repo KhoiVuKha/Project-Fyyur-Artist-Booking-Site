@@ -256,32 +256,32 @@ def create_venue_submission():
   form = VenueForm()
 
   try:
-      venue = Venue()
-      venue.name = request.form['name']
-      venue.city = request.form['city']
-      venue.state = request.form['state']
-      venue.address = request.form['address']
-      venue.phone = request.form['phone']
-      tmp_genres = request.form.getlist('genres')
-      venue.genres = ','.join(tmp_genres)
-      venue.facebook_link = request.form['facebook_link']
-      venue.website = request.form['website_link']
-      venue.image_link = request.form['image_link']
-      if (form.seeking_talent.data):
-        is_seeking_talent = True
-      else:
-        is_seeking_talent = False
-      venue.seeking_talent = is_seeking_talent
-      venue.seeking_description = request.form['seeking_description']
-  
-      db.session.add(venue)
-      db.session.commit()
+    venue = Venue()
+    venue.name = request.form['name']
+    venue.city = request.form['city']
+    venue.state = request.form['state']
+    venue.address = request.form['address']
+    venue.phone = request.form['phone']
+    tmp_genres = request.form.getlist('genres')
+    venue.genres = ','.join(tmp_genres)
+    venue.facebook_link = request.form['facebook_link']
+    venue.website = request.form['website_link']
+    venue.image_link = request.form['image_link']
+    if (form.seeking_talent.data):
+      is_seeking_talent = True
+    else:
+      is_seeking_talent = False
+    venue.seeking_talent = is_seeking_talent
+    venue.seeking_description = request.form['seeking_description']
+
+    db.session.add(venue)
+    db.session.commit()
   except:
-      error = True
-      db.session.rollback()
-      print(sys.exc_info())
+    error = True
+    db.session.rollback()
+    print(sys.exc_info())
   finally:
-      db.session.close()
+    db.session.close()
   if error:
     # on unsuccessful db insert, flash an error.
     flash('An error occurred. Venue ' + request.form['name'] + ' could not be listed.')
@@ -562,22 +562,22 @@ def create_show_submission():
   error = False
 
   try:
-      show = Show()
-      show.venue_id = request.form['venue_id']
-      show.artist_id = request.form['artist_id']
-      show.start_time = request.form['start_time']
-      db.session.add(show)
-      db.session.commit()
+    show = Show()
+    show.venue_id = request.form['venue_id']
+    show.artist_id = request.form['artist_id']
+    show.start_time = request.form['start_time']
+    db.session.add(show)
+    db.session.commit()
   except:
-      db.session.rollback()
-      error = True
-      print(sys.exc_info())
+    db.session.rollback()
+    error = True
+    print(sys.exc_info())
   finally:
-      db.session.close()
+    db.session.close()
   if error:
-      flash('An error occurred. Show could not be listed.')
+    flash('An error occurred. Show could not be listed.')
   else:
-      flash('Show was successfully listed!')
+    flash('Show was successfully listed!')
   return render_template('pages/home.html')
 
 @app.errorhandler(404)

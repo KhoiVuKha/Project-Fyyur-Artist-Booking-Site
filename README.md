@@ -5,6 +5,8 @@ Fyyur
 
 Fyyur is a musical venue and artist booking site that facilitates the discovery and bookings of shows between local performing artists and venues. This site lets you list new artists and venues, discover them, and list shows with artists as a venue owner.
 
+<img width="1439" alt="image" src="https://user-images.githubusercontent.com/15206083/224490735-1165387f-67b3-4000-9a18-a5611be1acd6.png">
+
 Your job is to build out the data models to power the API endpoints for the Fyyur site by connecting to a PostgreSQL database for storing, querying, and creating information about artists and venues on Fyyur.
 
 ## Overview
